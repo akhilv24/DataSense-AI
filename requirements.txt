@@ -1,0 +1,7 @@
+streamlit
+pandas
+python-dotenv
+langchain
+langchain-groq
+matplotlib
+seaborn

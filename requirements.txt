@@ -7,3 +7,7 @@ matplotlib
 seaborn
 tabula
 pdfplumber
+langchain_core
+openpyxl
+pypdf
+pypdf2

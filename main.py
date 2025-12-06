@@ -17,9 +17,7 @@ load_dotenv()
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 
 
-# ================================
-#           UI LAYOUT
-# ================================
+#    UI LAYOUT
 st.set_page_config(page_title="DataSense AI", layout="wide")
 
 col1, col2 = st.columns([1, 5])
@@ -31,9 +29,7 @@ with col2:
     st.caption("Upload a dataset and ask anything about it. DataSense AI will analyze it for you!")
 
 
-# ================================
 #      FILE UPLOAD SECTION
-# ================================
 uploaded_file = st.file_uploader(
     "📁 Upload your dataset",
     type=["csv", "xlsx", "xls", "pdf", "txt"]
@@ -58,7 +54,9 @@ if uploaded_file:
         elif file_type == "txt":
             df = pd.read_csv(uploaded_file, sep=None, engine="python")
 
-        # PDF
+        # ----------------------------
+        # ⭐ IMPROVED PDF BLOCK ADDED ⭐
+        # ----------------------------
         elif file_type == "pdf":
             st.warning("📄 Extracting PDF data...")
 
@@ -66,19 +64,21 @@ if uploaded_file:
             with open("temp.pdf", "wb") as f:
                 f.write(uploaded_file.read())
 
-            # Extract tables using Tabula
+            # Extract tables using Tabula (no crash)
             try:
                 df_list = tabula.read_pdf("temp.pdf", pages="all", multiple_tables=True)
-                if df_list:
+
+                if df_list and len(df_list) > 0:
                     df = df_list[0]
-                    st.success("Extracted table from PDF!")
+                    st.success("📊 Extracted table from PDF!")
                 else:
                     df = None
-                    st.warning("No tables found in the PDF.")
-            except:
-                st.warning("PDF table extraction failed.")
+                    st.warning("ℹ️ No tables found in this PDF. Extracting text only...")
+            except Exception:
+                df = None
+                st.warning("⚠️ No tables found or this PDF does not support table extraction.")
 
-            # Extract PDF text
+            # Extract PDF text safely
             try:
                 with pdfplumber.open("temp.pdf") as pdf:
                     for page in pdf.pages:
@@ -87,8 +87,12 @@ if uploaded_file:
                             pdf_text += text + "\n\n"
 
                 st.text_area("📄 Extracted PDF Text", pdf_text[:3000])
-            except:
-                st.error("Could not extract text from PDF")
+            except Exception as e:
+                st.error(f"PDF text extraction failed: {e}")
+
+        # ----------------------------
+        # ⭐ END OF PDF BLOCK          ⭐
+        # ----------------------------
 
         else:
             st.error("❌ Unsupported file format!")
@@ -97,9 +101,7 @@ if uploaded_file:
         st.error(f"❌ File error: {e}")
 
 
-# ================================
 #     SHOW DATA PREVIEW
-# ================================
 if df is not None:
     st.subheader("🔎 Data Preview")
     st.dataframe(df)
@@ -109,9 +111,7 @@ if df is not None:
     st.write(df.describe(include="all"))
 
 
-# ================================
 #      AI QUERY SECTION
-# ================================
 st.divider()
 user_query = st.text_input("💬 Ask something about this dataset:")
 

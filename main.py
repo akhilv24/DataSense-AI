@@ -146,7 +146,8 @@ Give a clear, simple, analytical answer.
         chain = prompt | llm | StrOutputParser()
 
         # Auto sample (fixes your error)
-        sample_size = min(len(df), 100)
+        max_rows = 50 if df.shape[1] > 10 else 100
+        sample_size = min(len(df), max_rows)
         short_df = df.sample(sample_size, random_state=42).to_csv(index=False)
 
         # Run AI
